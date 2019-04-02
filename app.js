@@ -1,5 +1,9 @@
 const express = require('express')
+const jwt = require('jsonwebtoken')
+
 const app = express()
+
+const SECRET_KEY = 'secret-key'
 
 app.get('/api', (req, res) => {
   res.json({
@@ -8,9 +12,39 @@ app.get('/api', (req, res) => {
 })
 
 app.get('/api/secret', verifyToken, (req, res) => {
-  res.json({
-    message: 'secret information'
+  jwt.verify(req.token, SECRET_KEY, (err, data) => {
+    if (err) {
+      res.sendStatus(403)
+    } else {
+      res.json({
+        message: 'secret information',
+        data
+      })
+    }
   })
+})
+
+app.get('/api/login', (req, res) => {
+  // Mock user
+  const user = {
+    id: 1,
+    username: 'Ana',
+    email: 'ana@gmail.com'
+  }
+
+  jwt.sign(
+    { user },
+    SECRET_KEY,
+    {
+      expiresIn: '30s'
+    },
+    (err, token) => {
+      if (err) {
+        console.log(err)
+      }
+      res.json({ token })
+    }
+  )
 })
 
 function verifyToken (req, res, next) {
